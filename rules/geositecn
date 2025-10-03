@@ -1,0 +1,6 @@
+rules:
+  - GEOSITE,geolocation-!cn@cn,DIRECT # DIRECT 为直连分组，可以改为你自己的分组
+  - GEOSITE,geolocation-!cn,PROXY # PROXY 为代理分组，可以改为你自己的分组
+  - GEOSITE,geolocation-cn@!cn,PROXY
+  - GEOSITE,geolocation-cn,DIRECT
+  - GEOSITE,tld-cn,DIRECT
