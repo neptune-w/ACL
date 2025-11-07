@@ -1,0 +1,99 @@
+unified-delay: true
+tcp-concurrent: true
+global-client-fingerprint: chrome
+
+# 嗅探
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+  skip-domain:
+    - "Mijia Cloud"
+    - "dlg.io.mi.com"
+    - "+.push.apple.com"
+    - "+.apple.com"
+  skip-dst-address:
+    - "10.0.0.0/8"
+    - "172.16.0.0/16"
+
+# 机场订阅
+proxy-providers:
+  订阅名称:
+    type: http
+    url: "https://xxxxxx/subscribe?token=11111111111111111111111111111&flag=clash&flag=meta&types=all"
+    interval: 3600
+    health-check:
+      enable: true
+      interval: 600
+      url: http://www.gstatic.com/generate_204
+
+# 节点信息
+proxies:
+
+# 出站策略
+# 注意锚点必须放在引用的上方，可以集中把锚点全部放yaml的顶部。
+pr: &pr {type: select, proxies: [🇭🇰 香港节点, 🇺🇲 美国节点, 🇸🇬 狮城节点, 🇯🇵 日本节点, 🇰🇷 韩国节点, 🇹🇼 台湾节点, 🏁 特殊节点, ♻️ 自动选择, DIRECT]}
+
+proxy-groups:
+  - {name: 🌐 全球加速, <<: *pr}
+  - {name: 🤖 谷歌服务, <<: *pr}
+  - {name: 📺 港台番剧, type: select, proxies: [DIRECT, 🇭🇰 香港节点, 🇹🇼 台湾节点]}
+  - {name: 🎞️ 国际媒体, <<: *pr}
+  - {name: 🛩️ 电报代理, <<: *pr}
+  - {name: 👾 Ai, type: select, proxies: [DIRECT,  🇸🇬 狮城节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🇹🇼 台湾节点, 🇰🇷 韩国节点]}
+  - {name: 💿 Emby分流, <<: *pr}
+  - {name: 🐟 黑白名单, <<: *pr}
+
+  - {name: 🇭🇰 香港节点, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(港|HK|(?i)Hong))^((?!(台|日|韩|坡|美)).)*$"}
+  - {name: 🇺🇲 美国节点, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(美|US|(?i)States|America))^((?!(港|台|日|韩|坡)).)*$"}
+  - {name: 🇰🇷 韩国节点, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(韩|KR|(?i)Korea))^((?!(港|台|日|坡|美)).)*$"}
+  - {name: 🇯🇵 日本节点, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(日|JP|(?i)Japan))^((?!(港|台|韩|坡|美)).)*$" }
+  - {name: 🇸🇬 狮城节点, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(新加坡|狮|獅|SG|(?i)Singapore))^((?!(港|台|日|韩|美)).)*$"}
+  - {name: 🇹🇼 台湾节点, type: url-test, include-all: true, tolerance: 20, interval: 300, filter: "(?=.*(台|TW|(?i)Taiwan))^((?!(港|日|韩|坡|美)).)*$"}
+  - {name: 🏁 特殊节点, type: select, include-all: true, tolerance: 20, interval: 300, filter: "^(?!.*(流量|到期|域名|剩余|港|台|日|韩|坡|美|HK|US|TW|JP|KR|SG|Hong|Tai|Japan|Korea|Singapore|States))"}
+  - {name: ♻️ 自动选择, type: url-test, include-all: true, tolerance: 20, interval: 300}
+
+# 规则集
+rule-anchor:
+  surge: &surge {type: http, interval: 86400, behavior: classical, format: text}
+
+rule-providers:
+  direct_plus: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Direct+.list" }
+  streaming_international: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/Streaming/!CN.list" }
+  streaming_hk_tw: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/Streaming/CN.list" }
+  google_voice: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/Google/GoogleVoice.list" }  
+  google_services1: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/Google/Chromecast.list" }
+  google_services2: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/Google/GoogleDrive.list" }
+  google_services3: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/Google/GoogleSearch.list" }
+  emby1: { <<: *surge, url: "https://raw.githubusercontent.com/ddgksf2013/Filter/refs/heads/master/Emby.list" }
+  emby2: { <<: *surge, url: "https://raw.githubusercontent.com/Ikeltis/rule/refs/heads/main/ruleset/Emby.list" }
+  telegram: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/Telegram.list" }
+  global_acceleration: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Proxy.list" }
+  direct_conners: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Direct.list" }
+  wechat: { <<: *surge, url: "https://raw.githubusercontent.com/ConnersHua/RuleGo/master/Surge/Ruleset/Extra/WeChat.list" }
+  Ai: {<<: 8surge, url: "https://raw.githubusercontent.com/liandu2024/clash/refs/heads/main/list/AI.list" }
+
+# 规则匹配
+# 此规则部分没有做防泄露处理，因为弊严重大于利！
+rules:
+  - RULE-SET,direct_plus,DIRECT
+  - RULE-SET,streaming_international,🎞️ 国际媒体
+  - RULE-SET,streaming_hk_tw,📺 港台番剧
+  - RULE-SET,google_voice,🇺🇲 美国节点
+  - RULE-SET,google_services1,🤖 谷歌服务
+  - RULE-SET,google_services2,🤖 谷歌服务
+  - RULE-SET,google_services3,🤖 谷歌服务
+  - RULE-SET,emby1,💿 Emby分流
+  - RULE-SET,emby2,💿 Emby分流
+  - RULE-SET,telegram,🛩️ 电报代理
+  - RULE-SET,global_acceleration,🌐 全球加速
+  - RULE-SET,direct_conners,DIRECT
+  - RULE-SET,wechat,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,🐟 黑白名单
